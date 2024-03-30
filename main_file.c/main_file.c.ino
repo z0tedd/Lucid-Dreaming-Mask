@@ -76,6 +76,11 @@ String readData(){
   return output;
 }
 
+void parseData(int &x,int &y,int &z, String s){
+  for (int i =0;i< s.length();i++){
+    
+  }
+}
 void setup() {
   Serial.begin(9600);
   HM10.begin(9600);
@@ -98,13 +103,15 @@ void setup() {
 void loop(){
   Accel.readAccelerationAXYZ(Ax, Ay, Az);
   startSetting = readData();
+  Serial.println(sqrt(Ax*Ax + Ay*Ay + Az*Az));
+  delay(100);
+  /*
   Serial.print(Ax);
   Serial.print("\t\t");
   Serial.print(Ay);
   Serial.print("\t\t");
   Serial.print(Az);
   Serial.println("");
-  lightWaking();
-  lightWakingOff();
+  */
   if (startSetting!="")Serial.println(startSetting);
 }
