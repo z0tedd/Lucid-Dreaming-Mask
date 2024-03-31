@@ -78,7 +78,7 @@ String readData(){
 
 void parseData(int &x,int &y,int &z, String s){
   for (int i =0;i< s.length();i++){
-    
+  
   }
 }
 void setup() {
@@ -101,17 +101,23 @@ void setup() {
 }
 
 void loop(){
-  Accel.readAccelerationAXYZ(Ax, Ay, Az);
-  startSetting = readData();
-  Serial.println(sqrt(Ax*Ax + Ay*Ay + Az*Az));
-  delay(100);
-  /*
-  Serial.print(Ax);
-  Serial.print("\t\t");
-  Serial.print(Ay);
-  Serial.print("\t\t");
-  Serial.print(Az);
-  Serial.println("");
-  */
-  if (startSetting!="")Serial.println(startSetting);
+  Accel.readAccelerationGXYZ(Ax, Ay, Az);
+  //startSetting = readData();
+  if (sqrt(Ax*Ax + Ay*Ay + Az*Az) > 2){
+    lightWaking();
+    lightWakingOff();
+    Matrix.fill(Matrix.Color(0,0,0));
+    delay(500);
+    Matrix.show();
+  }
+  //HM10.write()
+  
+  HM10.print(Ax);
+  HM10.print("\t\t");
+  HM10.print(Ay);
+  HM10.print("\t\t");
+  HM10.print(Az);
+  HM10.println("");
+  
+  //if (startSetting!="")Serial.println(startSetting);
 }
