@@ -99,10 +99,10 @@ void setup() {
   ||startSetting == "OK+CONN"); 
   */
 }
-
+String Setting;
 void loop(){
   Accel.readAccelerationGXYZ(Ax, Ay, Az);
-  //startSetting = readData();
+  Setting = readData();
   if (sqrt(Ax*Ax + Ay*Ay + Az*Az) > 2){
     lightWaking();
     lightWakingOff();
@@ -110,14 +110,36 @@ void loop(){
     delay(500);
     Matrix.show();
   }
-  //HM10.write()
+  if (Setting != "" && Setting[0]=='S'){
+    HM10.println("Message to Phone");
+    for (int i = 1;i<Setting.length();i++){
+      if (Setting[i] == 'E') break;
+      if (Setting[i] == 'T'){
+        Matrix.fill(Matrix.Color(255,255,255));
+        Matrix.show();
+        delay(200);
+        Matrix.fill(Matrix.Color(0,0,0));
+        Matrix.show();
+      }
+      if (Setting[i] == 'H'){
+        Matrix.fill(Matrix.Color(127,0,127));
+        Matrix.show();
+        delay(200);
+        Matrix.fill(Matrix.Color(0,0,0));
+        Matrix.show();
+      }
+    }
+    Setting = "";
+  }
   
+  //HM10.write()
+  /*
   HM10.print(Ax);
   HM10.print("\t\t");
   HM10.print(Ay);
   HM10.print("\t\t");
   HM10.print(Az);
   HM10.println("");
-  
+  */
   //if (startSetting!="")Serial.println(startSetting);
 }
