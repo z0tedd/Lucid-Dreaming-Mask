@@ -1,40 +1,43 @@
+// Подключаем библиотеку
+#include "BluetoothSerial.h"
 
-#define BTXPin D8
-#define BRXPin D7
-#define Board_LED D13
-SoftwareSerial HM10(BTXPin, BRXPin); // RX = 2, TX = 3
-char appData;  
-String inData = "";
-void setup()
-{
-  Serial.begin(9600);
-  Serial.println("HM10 serial started at 9600");
-  HM10.begin(9600); // set HM10 serial at 9600 baud rate
-  pinMode(D13, OUTPUT); // onboard LED
-  digitalWrite(13, LOW); // выключаем светодиод
+// Проверка, что Bluetooth доступен на плате
+#if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
+#error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
+#endif
+
+// Создаём экземпляр класса
+BluetoothSerial SerialBT;
+
+int LED = 2; // встроенный светодиод
+
+void setup() {
+  Serial.begin(115200); // включаем передачу данных у последовательного порта
+  SerialBT.begin("ESP32"); // Может придумать своё имя
+  Serial.println("The device started, now you can pair it with bluetooth!");
+  pinMode(LED, OUTPUT);
 }
-void loop()
-{
-  HM10.listen();  // слушаем HM10 port
-  while (HM10.available() > 0) {   // если HM10 что то передает, то считываем данные
-    appData = HM10.read();
-    inData = String(appData);  // сохраняем данные в строковой переменной
-    Serial.write(appData);
+
+void loop() {
+  if (Serial.available()) {
+    SerialBT.write(Serial.read());
   }
-  if (Serial.available()) {           // считываем информацию если пользователь что-нибудь вводит
-    delay(10);
-    HM10.write(Serial.read());
+  if (SerialBT.available()) {
+    char incomingChar = SerialBT.read();
+    Serial.write(incomingChar);
+
+    // При символе "1" включаем светодиод
+    if (incomingChar == '1')
+    {
+      digitalWrite(LED, HIGH);
+      Serial.println("On");
+    }
+    // При символе "0" выключаем светодиод
+    if ( incomingChar == '0')
+    {
+      digitalWrite(LED, LOW);
+      Serial.println("Off");
+    }
   }
-  if ( inData == "F"){
-    Serial.println("LED OFF");
-    digitalWrite(13, LOW); // выключаем светодиод
-    delay(500);
-  }
-  if ( inData == "N") {
-    Serial.println("LED ON");
-    digitalWrite(13, HIGH); // включаем светодиод
-    delay(500);
-    digitalWrite(13, LOW); // выключаем светодиод
-    delay(500);
-  }
+  delay(20);
 }
