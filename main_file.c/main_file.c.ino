@@ -105,6 +105,38 @@ void parseData(int &x,int &y,int &z, String s){
   }
 }
 
+bool isRpm(int AvrPulse, int NowPulse, long double AccelModulus,
+  long double AvrTemp, long double Temp) {
+  if ((NowPulse >= AvrPulse * 1.135) && (AccelModulus <= 1) 
+  && (Temp - AvrTemp >= 0.5)) {
+    return true;
+  }
+  return false;
+}
+//1)StartedTime - время, с начала постановки будильника.
+//2)WakeStartedTime - время, во сколько у нас заработает будильник
+//2-1 - время на сон, после этого получаем кол-во циклов в меньшую сторону.
+//
+unsigned long long WakeUpTime(unsigned long long StartedTime,
+  unsigned long long WakeStartedTime, unsigned long long interval){
+  const unsigned long long CycleConstant = 90*60*1000;
+  unsigned long long CyclesBeforeWakeUp = (WakeStartedTime-StartedTime)/CycleConstant;//How much cycles do we have minimum
+  if (CyclesBeforeWakeUp == 0) return WakeStartedTime;
+  if (interval+(WakeStartedTime-StartedTime) > (CyclesBeforeWakeUp+1)*CycleConstant){
+    return (CyclesBeforeWakeUp+1)*CycleConstant + StartedTime;
+  }
+  return (CyclesBeforeWakeUp)*CycleConstant + StartedTime;
+}
+
+void await(int AwaitTime){
+  unsigned long startTime = millis();
+  while (millis() - startTime > AwaitTime){
+    continue;
+  }
+}
+void Await(int AwaitTime){
+  delay(AwaitTime);
+}
 void setup() {
   Serial.begin(9600);
   Wire.begin();
@@ -134,12 +166,12 @@ void loop(){
   Serial.print(temp);
   Serial.print(" ");
   Serial.println(Pulse);
-  
+  //Serial.println(Ax, Ay, Az, Gx, Gy, Gz);
   if (sqrt(Ax*Ax + Ay*Ay + Az*Az) > 2){
     lightWaking();
     lightWakingOff();
     Matrix.fill(Matrix.Color(0,0,0));
-    delay(500);
+    Await(500);
     Matrix.show();
   }
   if (Setting != "" && Setting[0]=='S'){
@@ -150,7 +182,7 @@ void loop(){
         
         Matrix.fill(Matrix.Color(255,255,255));
         Matrix.show();
-        delay(200);
+        Await(200);
         Matrix.fill(Matrix.Color(0,0,0));
         Matrix.show();
       }
@@ -158,10 +190,27 @@ void loop(){
         digitalWrite(FMOTOR, HIGH);digitalWrite(SMOTOR, HIGH);
         Matrix.fill(Matrix.Color(127,0,127));
         Matrix.show();
-        delay(200);
+        Await(200);
         digitalWrite(FMOTOR, LOW);digitalWrite(SMOTOR, LOW);
         Matrix.fill(Matrix.Color(0,0,0));
         Matrix.show();
+      }
+      if (Setting[i] == 'C'){
+        String num = "";
+        num+=Setting[i+2];num+=Setting[i+3];
+        int Num = num.toInt();
+        if (Setting[i+1] == 'H'){
+           Num*=60*60;
+        }if (Setting[i+1] == 'M'){
+           Num*=60;
+        }
+        Await(Num*1000);//await(Num);
+        digitalWrite(FMOTOR, HIGH);digitalWrite(SMOTOR, HIGH);
+        lightWaking();
+        lightWakingOff();
+        Matrix.fill(Matrix.Color(0,0,0));
+        Matrix.show();
+        digitalWrite(FMOTOR, LOW);digitalWrite(SMOTOR, LOW);
       }
     }
     Setting = "";
